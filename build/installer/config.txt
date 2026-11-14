@@ -1,0 +1,6 @@
+;!@Install@!UTF-8!
+Title="WattGauge 1.0 — PC Power Usage & PLN Cost"
+BeginPrompt="Pasang WattGauge sekarang? (install per-user, tanpa admin)"
+RunProgram="install.bat"
+GUIMode="1"
+;!@InstallEnd@!

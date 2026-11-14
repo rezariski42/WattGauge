@@ -1,0 +1,1 @@
+fbbe934fcb5f88dfcf4881787f1e3e1262177fc45f853851ad0dad57e9ee9833  dist/WattGauge-Setup-1.1.0.exe
