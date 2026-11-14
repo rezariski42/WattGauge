@@ -357,12 +357,18 @@ class WindowsCollector:
         # ---- Mobo / fans / RGB ----
         fans = self.cfg.get("fans", default={}) or {}
         rgb = self.cfg.get("rgb", default={}) or {}
-        fan_count = int(fans.get("count") or 0)
-        fan_watt = float(fans.get("watt_each") or 1.5)
-        pump_watt = float(fans.get("pump_watt") or 6.0) if fans.get("aio_pump", True) else 0.0
-        led_count = int(rgb.get("leds") or 0)
-        led_watt = float(rgb.get("watt_each") or 0.3)
-        base = float(self.cfg.get("mobo", "base_watt", default=18.0) or 18.0)
+        def clamp(v, lo, hi):
+            try:
+                return max(lo, min(hi, float(v)))
+            except (TypeError, ValueError):
+                return lo
+
+        fan_count = int(clamp(fans.get("count", 6), 0, 16))
+        fan_watt = clamp(fans.get("watt_each", 1.5), 0.0, 5.0)
+        pump_watt = clamp(fans.get("pump_watt", 6.0), 0.0, 25.0) if fans.get("aio_pump", True) else 0.0
+        led_count = int(clamp(rgb.get("leds", 24), 0, 150))
+        led_watt = clamp(rgb.get("watt_each", 0.3), 0.0, 1.0)
+        base = clamp(self.cfg.get("mobo", "base_watt", default=18.0), 0.0, 40.0)
         platform_watt = base + fan_count * fan_watt + pump_watt + led_count * led_watt
         platform_watt += 2.5 * min(1.0, cpu_load / 100.0)
         snap.components.append(Component(

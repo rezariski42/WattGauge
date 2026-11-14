@@ -83,6 +83,7 @@ class History:
             vals = buckets[idx]
             out.append({
                 "day": label,
+                "idx": idx,
                 "hours": round(sum(vals) / len(vals), 1) if vals else 0.0,
                 "days": len(vals),
             })
@@ -100,6 +101,14 @@ class History:
         if seen == 0:
             return 0.0
         return total / seen
+
+    def active_days(self, window_days: int = 7) -> int:
+        today = datetime.date.today()
+        seen = 0
+        for i in range(window_days):
+            if self.day(today - datetime.timedelta(days=i))["active_sec"] > 0:
+                seen += 1
+        return seen
 
     def total_kwh(self):
         row = self._conn.execute("SELECT COALESCE(SUM(kwh),0) FROM days").fetchone()

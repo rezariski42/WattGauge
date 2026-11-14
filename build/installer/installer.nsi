@@ -2,11 +2,11 @@ Unicode true
 
 !include "MUI2.nsh"
 
-VIProductVersion "1.1.0.0"
+VIProductVersion "1.2.0.0"
 VIAddVersionKey "ProductName" "WattGauge"
 VIAddVersionKey "FileDescription" "WattGauge installer — monitor daya PC & biaya PLN"
-VIAddVersionKey "FileVersion" "1.1.0.0"
-VIAddVersionKey "ProductVersion" "1.1.0"
+VIAddVersionKey "FileVersion" "1.2.0.0"
+VIAddVersionKey "ProductVersion" "1.2.0"
 VIAddVersionKey "CompanyName" "Reza"
 VIAddVersionKey "LegalCopyright" "Reza"
 
@@ -62,7 +62,7 @@ Section "Install"
 
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\WattGauge" "DisplayName" "WattGauge"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\WattGauge" "DisplayIcon" "$INSTDIR\app\assets\icon.ico"
-    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\WattGauge" "DisplayVersion" "1.1.0"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\WattGauge" "DisplayVersion" "1.2.0"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\WattGauge" "Publisher" "Reza"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\WattGauge" "InstallLocation" "$INSTDIR"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\WattGauge" "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""

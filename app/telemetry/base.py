@@ -41,7 +41,7 @@ class Snapshot:
 
     @property
     def total_watt(self) -> float:
-        return round(sum(c.watt for c in self.components), 1)
+        return round(sum(round(c.watt, 1) for c in self.components), 1)
 
 
 def run(cmd, timeout=4.0, env=None):

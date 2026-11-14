@@ -1,74 +1,74 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Layouts
-import QtQuick.Controls
 
 Window {
     id: bar
-    width: 190
-    height: 34
+    width: 212
+    height: 40
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
-    visible: true
+    visible: false
 
     property var engineRef: null
+    property real liveWatt: engineRef ? engineRef.totalWatt : 0
     signal activated()
 
-    // Park the mini bar just above the taskbar, bottom-right corner.
-    Component.onCompleted: {
-        var scr = bar.screen
-        if (!scr || !scr.availableGeometry) return
-        var geo = scr.availableGeometry
-        bar.x = Math.max(0, geo.x + geo.width - bar.width - 12)
-        bar.y = Math.max(0, geo.y + geo.height - bar.height - 6)
+    onEngineRefChanged: visible = engineRef !== null
+
+    // No frame: just the numbers floating over the desktop, with an outline so
+    // they stay readable on any wallpaper.
+    RowLayout {
+        anchors.fill: parent
+        spacing: 5
+
+        Text {
+            text: "⚡"
+            font.pixelSize: 13
+            style: Text.Outline
+            styleColor: "#04101c"
+        }
+
+        Text {
+            text: bar.liveWatt > 0 ? bar.liveWatt.toFixed(1) : "—"
+            color: bar.liveWatt > 0 ? "#6fd6ff" : "#8aa0bb"
+            font.pixelSize: 24
+            font.bold: true
+            font.family: "Consolas"
+            style: Text.Outline
+            styleColor: "#03080f"
+        }
+
+        Text {
+            text: "W"
+            color: "#cfe4f5"
+            font.pixelSize: 11
+            font.bold: true
+            font.family: "Segoe UI"
+            style: Text.Outline
+            styleColor: "#03080f"
+            Layout.alignment: Qt.AlignBottom
+            Layout.bottomMargin: 6
+        }
+
+        Item { Layout.fillWidth: true }
+
+        Text {
+            text: bar.engineRef ? bar.engineRef.costPerHour : "Rp —"
+            color: "#7ee2a8"
+            font.pixelSize: 11
+            font.bold: true
+            font.family: "Segoe UI"
+            style: Text.Outline
+            styleColor: "#02110a"
+        }
     }
 
-    Rectangle {
+    MouseArea {
         anchors.fill: parent
-        radius: 10
-        color: "#101a2b"
-        border.width: 1
-        border.color: "#22314e"
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 9
-            anchors.rightMargin: 9
-            spacing: 6
-
-            Text { text: "⚡"; font.pixelSize: 11 }
-
-            Text {
-                text: (bar.engineRef ? bar.engineRef.totalWatt.toFixed(1) : "0.0")
-                color: "#5cc8f5"
-                font.pixelSize: 15
-                font.bold: true
-                font.family: "Consolas"
-            }
-            Text {
-                text: "W"
-                color: "#93a4bd"
-                font.pixelSize: 9
-                font.family: "Segoe UI"
-                Layout.alignment: Qt.AlignBottom
-                Layout.bottomMargin: 4
-            }
-
-            Item { Layout.fillWidth: true }
-
-            Text {
-                text: (bar.engineRef ? bar.engineRef.costPerHour : "Rp 0/jam")
-                color: "#7ee2a8"
-                font.pixelSize: 9
-                font.family: "Segoe UI"
-            }
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            acceptedButtons: Qt.LeftButton
-            onPressed: function(mouse) { bar.startSystemMove() }
-            onClicked: bar.activated()
-        }
+        acceptedButtons: Qt.LeftButton
+        cursorShape: Qt.PointingHandCursor
+        onPressed: function(mouse) { bar.startSystemMove() }
+        onClicked: bar.activated()
     }
 }

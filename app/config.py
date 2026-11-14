@@ -6,6 +6,8 @@ import os
 import sys
 
 APP_NAME = "WattGauge"
+APP_VERSION = "1.2.0"
+GITHUB_REPO = "rezariski42/WattGauge"
 
 DEFAULTS = {
     "tariff_per_kwh": 1444.7,
@@ -22,7 +24,8 @@ DEFAULTS = {
     "use_smart_hours": True,
     "topbar": {"enabled": True, "always_on_top": True},
     "sensor_source": "auto",
-    "ui": {"autostart": True, "window_width": 470, "window_height": 726},
+    "ui": {"autostart": True, "window_width": 470, "window_height": 726,
+           "language": "en", "close_to_tray": True},
 }
 
 

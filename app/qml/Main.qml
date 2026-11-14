@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
+import "i18n.js" as I18N
 
 Window {
     id: root
@@ -23,6 +24,16 @@ Window {
     property color muted: "#7b8aa3"
     property color line: "#1e2b45"
     property var backend: null
+    property string lang: backend ? backend.language : "en"
+    property bool quitting: false
+    property bool tariffOpen: false
+
+    onClosing: function(close) {
+        if (!root.quitting) {
+            close.accepted = false
+            root.hide()
+        }
+    }
 
     // Everything is laid out at the design size (470x726) and scaled as one
     // block, so dragging the corner scales the whole UI instead of clipping it.
@@ -66,14 +77,14 @@ Window {
                     spacing: 1
                     Layout.fillWidth: true
                     Text {
-                        text: "POWER USAGE & COST"
+                        text: I18N.t(root.lang, "app_tagline")
                         color: root.text
                         font.pixelSize: 12
                         font.bold: true
                         font.letterSpacing: 0.6
                     }
                     Text {
-                        text: backend.summaryChips.length > 0 ? backend.summaryChips : "Detecting hardware…"
+                        text: backend.summaryChips.length > 0 ? backend.summaryChips : I18N.t(root.lang, "detecting")
                         color: root.muted
                         font.pixelSize: 9
                         elide: Text.ElideRight
@@ -120,7 +131,7 @@ Window {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: { backend.shutdown(); Qt.quit() }
+                        onClicked: root.hide()
                     }
                 }
             }
@@ -153,7 +164,7 @@ Window {
                         spacing: 0
                         Layout.fillWidth: true
                         Text {
-                            text: "TOTAL LIVE CONSUMPTION"
+                            text: I18N.t(root.lang, "total_live")
                             color: root.muted
                             font.pixelSize: 8
                             font.letterSpacing: 0.8
@@ -168,7 +179,7 @@ Window {
                                 font.family: "Consolas"
                             }
                             Text {
-                                text: "WATT"
+                                text: I18N.t(root.lang, "watt_unit")
                                 color: root.muted
                                 font.pixelSize: 9
                                 font.bold: true
@@ -177,7 +188,9 @@ Window {
                             }
                         }
                         Text {
-                            text: backend.uptimeText + " nyala · " + backend.kwhSession.toFixed(2) + " kWh sesi"
+                            text: I18N.fmt(root.lang, "session_line",
+                                           { uptime: backend.uptimeText,
+                                             kwh: backend.kwhSession.toFixed(2) })
                             color: root.muted
                             font.pixelSize: 8
                         }
@@ -190,38 +203,51 @@ Window {
                         Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
 
                         Text {
-                            text: "Tarif PLN"
+                            text: I18N.t(root.lang, "tariff")
                             color: root.muted
                             font.pixelSize: 8
                             Layout.alignment: Qt.AlignRight
                         }
 
                         Rectangle {
-                            color: "#0d1524"
+                            id: tariffBox
+                            color: tariffArea.containsMouse ? "#16223a" : "#0d1524"
                             radius: 6
                             border.width: 1
-                            border.color: root.line
-                            implicitWidth: 96
+                            border.color: root.tariffOpen ? root.accent : root.line
+                            implicitWidth: 104
                             implicitHeight: 22
-                            TextInput {
-                                id: tariffInput
+                            RowLayout {
                                 anchors.fill: parent
-                                anchors.margins: 4
-                                text: Number(backend.tariff).toFixed(2).replace(".", ",")
-                                color: root.text
-                                font.pixelSize: 10
-                                font.bold: true
-                                font.family: "Consolas"
-                                horizontalAlignment: TextInput.AlignRight
-                                validator: DoubleValidator { bottom: 1; top: 100000; decimals: 2 }
-                                onEditingFinished: {
-                                    var v = parseFloat(text.replace(/\./g, "").replace(",", "."))
-                                    if (!isNaN(v) && v > 0) backend.setTariff(v)
+                                anchors.leftMargin: 6
+                                anchors.rightMargin: 4
+                                spacing: 3
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: Number(backend.tariff).toFixed(2)
+                                          .replace(".", root.lang === "id" ? "," : ".")
+                                    color: root.text
+                                    font.pixelSize: 10
+                                    font.bold: true
+                                    font.family: "Consolas"
+                                    horizontalAlignment: Text.AlignRight
                                 }
+                                Text {
+                                    text: "▾"
+                                    color: root.accent
+                                    font.pixelSize: 9
+                                }
+                            }
+                            MouseArea {
+                                id: tariffArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.tariffOpen = !root.tariffOpen
                             }
                         }
                         Text {
-                            text: "Rp/kWh"
+                            text: I18N.t(root.lang, "per_kwh")
                             color: root.muted
                             font.pixelSize: 8
                             Layout.alignment: Qt.AlignRight
@@ -264,7 +290,7 @@ Window {
                                 Layout.fillWidth: true
                                 spacing: 0
                                 Text {
-                                    text: modelData.name
+                                    text: modelData ? modelData.name : ""
                                     color: root.text
                                     font.pixelSize: 9
                                     elide: Text.ElideRight
@@ -272,7 +298,7 @@ Window {
                                 }
                                 Text {
                                     text: (modelData.detail || "") +
-                                          (modelData.source === "sensor" ? "  • real" : "")
+                                          (modelData.source === "sensor" ? I18N.t(root.lang, "real_tag") : "")
                                     color: modelData.source === "sensor" ? "#7ee2a8" : root.muted
                                     font.pixelSize: 7
                                     elide: Text.ElideRight
@@ -299,7 +325,7 @@ Window {
                     border.color: root.line
                     Text {
                         anchors.centerIn: parent
-                        text: "+ Tambah Display / Fan / RGB di ⚙ Settings"
+                        text: I18N.t(root.lang, "add_tile")
                         color: root.muted
                         font.pixelSize: 8
                     }
@@ -328,7 +354,7 @@ Window {
                     RowLayout {
                         Layout.fillWidth: true
                         Text {
-                            text: "RIWAYAT JAM PC AKTIF (7 HARI)"
+                            text: I18N.t(root.lang, "history_title")
                             color: root.text
                             font.pixelSize: 8
                             font.bold: true
@@ -336,9 +362,10 @@ Window {
                         }
                         Item { Layout.fillWidth: true }
                         Text {
-                            text: "Rata-rata: " + (backend && backend.avgDailyHours > 0
-                                        ? backend.avgDailyHours.toFixed(1) + " Jam/Hari"
-                                        : "belum ada data")
+                            text: I18N.t(root.lang, "avg_label") + " " + (backend && backend.avgDailyHours > 0
+                                        ? I18N.fmt(root.lang, "hours_a_day",
+                                                   { v: backend.avgDailyHours.toFixed(1) })
+                                        : I18N.t(root.lang, "no_data"))
                             color: root.accent
                             font.pixelSize: 8
                             font.bold: true
@@ -372,7 +399,7 @@ Window {
                                     }
                                 }
                                 Text {
-                                    text: modelData.day
+                                    text: I18N.day(root.lang, modelData.idx)
                                     color: root.muted
                                     font.pixelSize: 7
                                     Layout.alignment: Qt.AlignHCenter
@@ -405,7 +432,7 @@ Window {
                         border.color: backend.selectedDays === modelData ? "#2f9fd0" : root.line
                         Text {
                             anchors.centerIn: parent
-                            text: modelData + " Hari"
+                            text: I18N.fmt(root.lang, "days_option", { n: modelData })
                             color: backend.selectedDays === modelData ? "#eaf9ff" : root.muted
                             font.pixelSize: 8
                             font.bold: backend.selectedDays === modelData
@@ -424,41 +451,84 @@ Window {
                 spacing: 6
 
                 Rectangle {
+                    id: modeAvgBtn
                     Layout.fillWidth: true
-                    implicitHeight: 26
-                    radius: 7
-                    color: "#1a3247"
+                    implicitHeight: 34
+                    radius: 8
+                    color: backend.useSmartHours ? "#1a5f86" : root.card
                     border.width: 1
-                    border.color: "#28506f"
-                    Text {
+                    border.color: backend.useSmartHours ? "#2f9fd0" : root.line
+                    ColumnLayout {
                         anchors.centerIn: parent
-                        text: "📊 " + backend.modeLabel
-                        color: "#bfe6ff"
-                        font.pixelSize: 8
-                        font.bold: true
-                    }
-                }
-
-                Rectangle {
-                    implicitHeight: 26
-                    implicitWidth: 132
-                    radius: 7
-                    color: backend.useSmartHours ? root.card : "#1a5f86"
-                    border.width: 1
-                    border.color: backend.useSmartHours ? root.line : "#2f9fd0"
-                    Text {
-                        anchors.centerIn: parent
-                        text: "⚡ 24 Jam Non-Stop"
-                        color: backend.useSmartHours ? root.muted : "#eaf9ff"
-                        font.pixelSize: 8
-                        font.bold: !backend.useSmartHours
+                        spacing: 1
+                        Text {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: I18N.t(root.lang, "mode_avg")
+                            color: backend.useSmartHours ? "#eaf9ff" : root.muted
+                            font.pixelSize: 8
+                            font.bold: backend.useSmartHours
+                        }
+                        Text {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: backend.hoursLabel
+                            width: Math.max(0, modeAvgBtn.width - 16)
+                            horizontalAlignment: Text.AlignHCenter
+                            elide: Text.ElideRight
+                            color: backend.useSmartHours ? "#a8dcf2" : "#6d7f99"
+                            font.pixelSize: 7
+                        }
                     }
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: backend.setUseSmartHours(!backend.useSmartHours)
+                        onClicked: backend.setUseSmartHours(true)
                     }
                 }
+
+                Rectangle {
+                    id: modeFullBtn
+                    implicitHeight: 34
+                    implicitWidth: 138
+                    radius: 8
+                    color: backend.useSmartHours ? root.card : "#1a5f86"
+                    border.width: 1
+                    border.color: backend.useSmartHours ? root.line : "#2f9fd0"
+                    ColumnLayout {
+                        anchors.centerIn: parent
+                        spacing: 1
+                        Text {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: I18N.t(root.lang, "mode_full")
+                            color: backend.useSmartHours ? root.muted : "#eaf9ff"
+                            font.pixelSize: 8
+                            font.bold: !backend.useSmartHours
+                        }
+                        Text {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: I18N.t(root.lang, "hours_24")
+                            color: backend.useSmartHours ? "#6d7f99" : "#a8dcf2"
+                            font.pixelSize: 7
+                        }
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: backend.setUseSmartHours(false)
+                    }
+                }
+            }
+
+            Text {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                color: root.muted
+                font.pixelSize: 7
+                text: I18N.fmt(root.lang, backend.useSmartHours ? "est_smart" : "est_full", {
+                          days: backend.selectedDays,
+                          hours: backend.hoursLabel,
+                          total: backend.estimatedHours.toFixed(0),
+                          active: backend.activeDays
+                      })
             }
 
             // ---------- cost footer ----------
@@ -477,7 +547,8 @@ Window {
                     ColumnLayout {
                         spacing: 1
                         Text {
-                            text: "Estimasi Biaya (" + backend.selectedDays + " Hari · " + backend.basisNote + ")"
+                            text: I18N.fmt(root.lang, "cost_est",
+                                           { days: backend.selectedDays, basis: backend.basisNote })
                             color: "#6f8f80"
                             font.pixelSize: 8
                         }
@@ -492,7 +563,7 @@ Window {
                     ColumnLayout {
                         spacing: 1
                         Text {
-                            text: "Total Energi"
+                            text: I18N.t(root.lang, "total_energy")
                             color: "#6f8f80"
                             font.pixelSize: 8
                             Layout.alignment: Qt.AlignRight
@@ -563,7 +634,133 @@ Window {
     }
     Shortcut {
         sequence: "Ctrl+Q"
-        onActivated: { if (backend) backend.shutdown(); Qt.quit() }
+        onActivated: { root.quitting = true; if (backend) backend.shutdown(); Qt.quit() }
+    }
+
+
+    // ---------- tariff picker (overlay, no popup window) ----------
+    Rectangle {
+        id: tariffOverlay
+        anchors.fill: parent
+        z: 80
+        visible: root.tariffOpen
+        color: "#00000099"
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: root.tariffOpen = false
+        }
+
+        Rectangle {
+            id: tariffPanel
+            width: 252
+            height: tariffList.implicitHeight + 14
+            anchors.right: parent.right
+            anchors.rightMargin: 18
+            y: 96
+            radius: 10
+            color: "#0c1524"
+            border.width: 1
+            border.color: "#2b3d5c"
+
+            Column {
+                id: tariffList
+                anchors.fill: parent
+                anchors.margins: 7
+                spacing: 0
+
+                Item {
+                    width: tariffList.width
+                    height: 22
+                    Text {
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: I18N.t(root.lang, "tariff_section")
+                        color: "#8fb0d0"
+                        font.pixelSize: 8
+                        font.bold: true
+                        font.letterSpacing: 0.5
+                    }
+                    Text {
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: I18N.t(root.lang, "tariff_credit")
+                        color: "#4f7ea8"
+                        font.pixelSize: 7
+                    }
+                }
+
+                Repeater {
+                    model: I18N.TARIFFS
+
+                    delegate: Column {
+                        width: tariffList.width
+                        spacing: 0
+                        property bool showHeader: index === 0
+                                                  || I18N.TARIFFS[index - 1].group !== modelData.group
+                        property bool isActive: Math.abs(backend.tariff - modelData.price) < 0.01
+                                                    && backend.tariffPresetName === modelData.name
+
+                        Item {
+                            width: parent.width
+                            height: showHeader ? 18 : 0
+                            Text {
+                                anchors.left: parent.left
+                                anchors.bottom: parent.bottom
+                                text: modelData.group === "business"
+                                      ? I18N.t(root.lang, "business")
+                                      : I18N.t(root.lang, "household")
+                                color: "#5f7a96"
+                                font.pixelSize: 7
+                                font.bold: true
+                                font.letterSpacing: 0.6
+                            }
+                        }
+
+                        Rectangle {
+                            width: parent.width
+                            height: 25
+                            radius: 5
+                            color: isActive ? "#14314a" : (rowHover.containsMouse ? "#16223a" : "transparent")
+
+                            Row {
+                                anchors.fill: parent
+                                anchors.leftMargin: 8
+                                anchors.rightMargin: 8
+                                spacing: 6
+                                Text {
+                                    width: parent.width - priceText.width - 10
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: modelData.name
+                                    color: isActive ? "#bfe6ff" : "#dbe7f5"
+                                    font.pixelSize: 9
+                                    elide: Text.ElideRight
+                                }
+                                Text {
+                                    id: priceText
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: "Rp " + I18N.money(root.lang, modelData.price)
+                                    color: "#7ee2a8"
+                                    font.pixelSize: 8
+                                    font.family: "Consolas"
+                                }
+                            }
+
+                            MouseArea {
+                                id: rowHover
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    backend.setTariffPreset(modelData.name, modelData.price)
+                                    root.tariffOpen = false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     Loader {

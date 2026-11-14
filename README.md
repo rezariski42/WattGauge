@@ -1,50 +1,70 @@
 # WattGauge
 
-Monitor daya PC real-time + estimasi biaya listrik PLN untuk Windows 10/11.
+Real-time PC power monitor with PLN (Indonesia) electricity-cost estimates for Windows 10/11.
 
-**[⬇ Download WattGauge 1.1.0 (Windows 64-bit, 64 MB)](https://github.com/rezariski42/WattGauge/releases/download/v1.1.0/WattGauge-1.1.0-win64.zip)** — ekstrak zip, jalankan `WattGauge-Setup-1.1.0.exe`. Tidak perlu install Python.
-Python + PyQt6 (QML UI), dikemas jadi installer yang **tidak butuh Python terpasang** —
-runtime Python 3.12 + PyQt6 sudah dibundel di dalam installer.
+**[⬇ Download WattGauge 1.2.0 (Windows 64-bit, 64 MB)](https://github.com/rezariski42/WattGauge/releases/latest)** — unzip, run `WattGauge-Setup-1.2.0.exe`. No Python required.
 
-## Fitur
+![WattGauge main window](docs/preview-main-en.png)
 
-- Total konsumsi watt real-time, dijabarkan per komponen (CPU, RAM, GPU/Display, mobo, fan, RGB, storage).
-- CPU watt dibaca dari sensor (LibreHardwareMonitor / RAPL via LHM); kalau sensor tidak ada,
-  nilai dihitung dari load x TDP dan diberi label *estimasi*.
-- GPU terdeteksi otomatis lewat `nvidia-smi` (tidak ada GPU = tile GPU tidak ditampilkan).
-- Riwayat jam aktif PC per hari (Senin–Minggu) tersimpan permanen di SQLite `%APPDATA%\WattGauge\history.db`.
-- Estimasi kWh dan biaya Rp (tarif PLN bisa diubah di Pengaturan).
-- Top bar mini selalu di atas (pojok kanan bawah, di atas taskbar) berisi watt + Rp/jam.
-- Tray icon + tooltip + judul window menampilkan watt berjalan.
-- Jendela bisa di-resize/di-scale (ukuran terakhir diingat).
-- **Autostart default ON**: aplikasi otomatis jalan saat Windows booting, bisa dimatikan di Pengaturan.
-- Riwayat jam PC, rata-rata harian otomatis, mode "24 Jam Non-Stop" atau rata-rata.
+Built with Python + PyQt6 (QML UI) and shipped as a per-user installer: portable Python 3.12
+and all PyQt6 wheels are bundled, so the target PC does not need Python installed.
 
-## Instalasi
+## Features
 
-1. Unduh `dist/WattGauge-Setup-1.1.0.exe`.
-2. Jalankan (per-user, tidak perlu admin).
-3. Wizard: Next → Install → Finish (aplikasi langsung terbuka).
+- Real-time total wattage broken down per component (CPU, GPU, RAM, display, mobo/fan/RGB, storage).
+- CPU watts read from sensors (LibreHardwareMonitor / RAPL via LHM). Without a sensor the value is
+  computed from load × TDP and labelled *estimate*.
+- GPU detected automatically via `nvidia-smi` (no GPU = no GPU tile).
+- Active-hours history per weekday (Mon–Sun), stored in SQLite at `%APPDATA%\WattGauge\history.db`.
+- kWh and Rp cost projection: *Average Hours* mode (uses your real active days) or *24h Non-Stop* mode.
+- **PLN tariff presets** grouped by Household / Business, plus a custom Rp/kWh field:
+  - 900 VA (Subsidi) — Rp 605/kWh
+  - 900 VA (Nonsubsidi) — Rp 1.352/kWh
+  - 1.300 VA / 2.200 VA — Rp 1.444,70/kWh
+  - 3.500 VA – 5.500 VA / 6.600 VA+ (R-3) — Rp 1.699,53/kWh
+  - 6.600 VA – 200 kVA (B-2 / TR, Business) — Rp 1.444,70/kWh
+  - Custom tariff for anything else
+- **Language switch**: English (default) and Bahasa Indonesia, changeable in Settings.
+- **Closing the window keeps the app running in the background** (tray icon), so cost keeps counting.
+  Quit for real from the tray menu or `Ctrl+Q`.
+- Frameless mini watt widget docked bottom-right above the taskbar (watt + Rp/hour). Click it to
+  show/hide the main window.
+- Tray icon painted with live digits + tooltip + window title wattage.
+- Resizable/scalable window (last size remembered).
+- **Autostart on boot by default**, toggleable in Settings.
+- Settings footer: version, credit, "Check for update" and "Open GitHub" buttons.
 
-Install ke `%LOCALAPPDATA%\Programs\WattGauge`, membuat shortcut Desktop + Start Menu,
-entri uninstall di *Apps & features*, dan entri autostart di
+![Settings](docs/preview-settings-en.png)
+![PLN tariff picker](docs/preview-tariff-en.png)
+
+<sub>Bahasa Indonesia: `docs/preview-main-id.png`, `docs/preview-settings-id.png`.</sub>
+
+## Install
+
+1. Download `WattGauge-Setup-1.2.0.exe` (from the zip).
+2. Run it — per-user install, no admin needed.
+3. Wizard: Next → Install → Finish (the app opens immediately).
+
+Installs to `%LOCALAPPDATA%\Programs\WattGauge`, creates Desktop + Start Menu shortcuts,
+an *Apps & features* uninstall entry, and an autostart entry under
 `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`.
 
-Autostart bisa dimatikan kapan saja: buka Pengaturan (ikon gear atau `Ctrl+,`)
-→ bagian STARTUP → hilangkan centang "Autostart saat Windows nyala" → SIMPAN.
+Disable autostart any time: open Settings (gear icon or `Ctrl+,`) → STARTUP → uncheck
+"Autostart with Windows" → SAVE.
 
-## Pintasan
+## Shortcuts
 
-| Tombol | Aksi |
+| Key | Action |
 | --- | --- |
-| `Ctrl+,` | Buka Pengaturan |
-| `Ctrl+Q` | Keluar |
-| Tarik sudut kanan bawah | Resize / scale UI |
+| `Ctrl+,` | Open Settings |
+| `Ctrl+Q` | Quit (from tray menu too) |
+| Click mini widget | Show / hide main window |
+| Drag window corner | Resize / scale UI |
 
-## Build dari source
+## Build from source
 
-Butuh Linux atau Windows dengan NSIS 3.x. Runtime Windows diambil dari paket NuGet `python`
-(portable Python 3.12.8), plus wheel PyQt6/psutil win_amd64.
+Requires Linux or Windows with NSIS 3.x. The Windows runtime comes from the NuGet `python`
+package (portable CPython 3.12.8) plus PyQt6/psutil win_amd64 wheels.
 
 ```bash
 cd build
@@ -52,27 +72,31 @@ cd build
 NSISDIR=$PWD/nsis/usr/share/nsis ./nsis/usr/bin/makensis installer/installer.nsi
 ```
 
-Hasil: `build/WattGauge-Setup.exe`.
+Output: `build/WattGauge-Setup.exe`.
 
-## Struktur
+## Structure
 
 ```
 app/
-  main.py                 entry point, tray, top bar, --selftest
-  engine.py               sampler thread, snapshot, biaya, autostart, window size
-  config.py               config JSON di %APPDATA%\WattGauge
-  history.py              SQLite riwayat harian + rata-rata
-  telemetry/windows.py    collector Windows (LHM WMI, nvidia-smi, CIM)
-  telemetry/linux.py      collector Linux (RAPL, nvidia-smi) untuk dev
+  main.py                 entry point, tray, mini widget, --selftest
+  engine.py               sampler thread, snapshot, cost, autostart, i18n, update check
+  config.py               JSON config in %APPDATA%\WattGauge
+  history.py              SQLite daily history + averages
+  telemetry/windows.py    Windows collector (LHM WMI, nvidia-smi, CIM)
+  telemetry/linux.py      Linux collector (RAPL, nvidia-smi) for dev
   qml/Main.qml            dashboard
-  qml/Settings.qml        pengaturan
-  qml/TopBar.qml          mini bar always-on-top
+  qml/Settings.qml        settings (language, tariff, startup, about)
+  qml/TopBar.qml          frameless mini watt widget
+  qml/i18n.js             EN/ID strings + PLN tariff table
 build/installer/installer.nsi
-dist/WattGauge-Setup-1.1.0.exe
+docs/preview-*.png
 ```
 
-## Catatan akurasi
+## Accuracy notes
 
-Di VM tanpa GPU/passthrough, watt bersifat estimasi. Angka sensor asli (CPU package power,
-GPU power draw) hanya muncul saat dijalankan langsung di PC fisik dengan
-LibreHardwareMonitor (WMI) atau driver NVIDIA.
+In a VM without GPU passthrough, wattage is an estimate. Real sensor values (CPU package power,
+GPU power draw) only appear on physical hardware with LibreHardwareMonitor (WMI) or the NVIDIA
+driver.
+
+---
+by rezariski · MIT

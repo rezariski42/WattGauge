@@ -16,3 +16,4 @@ build/WattGauge-Setup.exe
 
 # only the compressed release artifact ships in the repo
 dist/*.exe
+dist/pkg/
