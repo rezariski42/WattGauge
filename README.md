@@ -1,6 +1,8 @@
 # WattGauge
 
 Monitor daya PC real-time + estimasi biaya listrik PLN untuk Windows 10/11.
+
+**[⬇ Download WattGauge 1.1.0 (Windows 64-bit, 64 MB)](https://github.com/rezariski42/WattGauge/releases/download/v1.1.0/WattGauge-1.1.0-win64.zip)** — ekstrak zip, jalankan `WattGauge-Setup-1.1.0.exe`. Tidak perlu install Python.
 Python + PyQt6 (QML UI), dikemas jadi installer yang **tidak butuh Python terpasang** —
 runtime Python 3.12 + PyQt6 sudah dibundel di dalam installer.
 
