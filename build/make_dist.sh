@@ -2,7 +2,7 @@
 # Package the freshly built installer into a release zip + checksums.
 set -e
 cd "$(dirname "$0")/.."
-VER=1.2.0
+VER=1.2.1
 DIST=dist
 rm -rf "$DIST/pkg"
 mkdir -p "$DIST/pkg"

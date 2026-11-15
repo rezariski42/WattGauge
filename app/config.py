@@ -6,7 +6,7 @@ import os
 import sys
 
 APP_NAME = "WattGauge"
-APP_VERSION = "1.2.0"
+APP_VERSION = "1.2.1"
 GITHUB_REPO = "rezariski42/WattGauge"
 
 DEFAULTS = {

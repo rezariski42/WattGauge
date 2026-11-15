@@ -29,9 +29,21 @@ Window {
     property bool tariffOpen: false
 
     onClosing: function(close) {
+        // Minimise to the taskbar instead of vanishing: the taskbar button is
+        // the way to bring the window back.
         if (!root.quitting) {
             close.accepted = false
-            root.hide()
+            root.showMinimized()
+        }
+    }
+
+    function openSettings() {
+        if (settingsLoader.item) {
+            settingsLoader.item.reload()
+            settingsLoader.item.show()
+            settingsLoader.item.requestActivate()
+        } else {
+            settingsLoader.active = true
         }
     }
 
@@ -52,6 +64,17 @@ Window {
         color: root.bg
         border.width: 1
         border.color: "#1b2740"
+
+        // Drag window by the header. Declared before the controls so the
+        // gear / close buttons stay on top and receive their clicks.
+        MouseArea {
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: 56
+            acceptedButtons: Qt.LeftButton
+            onPressed: function(mouse) { root.startSystemMove() }
+        }
 
         ColumnLayout {
             anchors.fill: parent
@@ -90,6 +113,12 @@ Window {
                         elide: Text.ElideRight
                         Layout.fillWidth: true
                     }
+                    Text {
+                        text: "by rezariski"
+                        color: "#5c8bb8"
+                        font.pixelSize: 8
+                        font.letterSpacing: 0.4
+                    }
                 }
 
                 Rectangle {
@@ -118,7 +147,7 @@ Window {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: settingsLoader.active = true
+                        onClicked: root.openSettings()
                     }
                 }
 
@@ -131,7 +160,7 @@ Window {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: root.hide()
+                        onClicked: root.showMinimized()
                     }
                 }
             }
@@ -332,7 +361,7 @@ Window {
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: settingsLoader.active = true
+                        onClicked: root.openSettings()
                     }
                 }
             }
@@ -582,16 +611,6 @@ Window {
 
             Item { Layout.fillHeight: true }
         }
-
-        // drag window by header
-        MouseArea {
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            height: 56
-            acceptedButtons: Qt.LeftButton
-            onPressed: function(mouse) { root.startSystemMove() }
-        }
     }
 
     }
@@ -630,7 +649,7 @@ Window {
 
     Shortcut {
         sequence: "Ctrl+,"
-        onActivated: settingsLoader.active = true
+        onActivated: root.openSettings()
     }
     Shortcut {
         sequence: "Ctrl+Q"
@@ -767,7 +786,12 @@ Window {
         id: settingsLoader
         active: false
         source: "Settings.qml"
-        onLoaded: item.engineRef = backend
-        onActiveChanged: if (active && item) item.show()
+        onLoaded: {
+            item.engineRef = backend
+            item.reload()
+            item.show()
+            item.requestActivate()
+        }
+        onActiveChanged: if (active && item) { item.show(); item.requestActivate() }
     }
 }

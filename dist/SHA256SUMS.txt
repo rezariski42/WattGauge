@@ -1,1 +1,1 @@
-be6bb54040ff3d9989bdc5e7a99716e0bd4eda2792a4f92889b9f28a2bf28a08  WattGauge-Setup-1.2.0.exe
+a0e9fa534f8dccdf520a9a7d000ce391ec1a8720dc56ea66737e4bda174cd908  WattGauge-Setup-1.2.1.exe

@@ -105,40 +105,6 @@ def main() -> int:
         except Exception:
             pass
 
-    topbar_holder = {"window": None}
-
-    def apply_topbar():
-        enabled = bool(engine.cfg.get("topbar", "enabled", default=True))
-        if enabled and topbar_holder["window"] is None:
-            tb = QQmlApplicationEngine(qml)
-            tb.setInitialProperties({"engineRef": engine})
-            tb.load(QUrl.fromLocalFile(resource("qml", "TopBar.qml")))
-            if tb.rootObjects():
-                win = tb.rootObjects()[0]
-                win.setProperty("engineRef", engine)
-                win.activated.connect(toggle_main)
-
-                def place_topbar():
-                    try:
-                        scr = win.screen() or app.primaryScreen()
-                        geo = scr.availableGeometry()
-                        win.setPosition(geo.x() + geo.width() - win.width() - 10,
-                                        geo.y() + geo.height() - win.height() - 6)
-                    except Exception:
-                        pass
-
-                place_topbar()
-                QTimer.singleShot(800, place_topbar)
-                QTimer.singleShot(2500, place_topbar)
-                topbar_holder["window"] = win
-                topbar_holder["engine"] = tb
-        elif not enabled and topbar_holder["window"] is not None:
-            topbar_holder["window"].close()
-            topbar_holder["window"] = None
-
-    apply_topbar()
-    engine.configChanged.connect(apply_topbar)
-
     tray = None
     if QSystemTrayIcon.isSystemTrayAvailable():
         tray = QSystemTrayIcon(QIcon(icon_path) if os.path.exists(icon_path) else QIcon(), app)

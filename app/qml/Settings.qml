@@ -39,6 +39,29 @@ Window {
         return "Rp " + I18N.money(dlg.lang, v)
     }
 
+    // Load every field from the stored config. Called when the dialog is shown
+    // and when the engine arrives. The fields are NOT declaratively bound to
+    // the config, so any config change while editing (language switch, an
+    // autostart save, ...) can no longer wipe edits that have not been saved.
+    function reload() {
+        if (!engineRef) return
+        var s = engineRef.settings
+        d1.text = Number(s.display1).toFixed(0)
+        d2.text = Number(s.display2).toFixed(0)
+        d2en.checked = !!s.display2Enabled
+        tariffField.text = I18N.money(dlg.lang, engineRef.tariff)
+        autostartChk.checked = !!s.autostart
+        fanCount.text = String(s.fans)
+        fanWatt.text = Number(s.fanWatt).toFixed(1)
+        pump.checked = !!s.pump
+        pumpWatt.text = Number(s.pumpWatt).toFixed(1)
+        leds.text = String(s.leds)
+        ledWatt.text = Number(s.ledWatt).toFixed(2)
+    }
+
+    onEngineRefChanged: reload()
+    Component.onCompleted: reload()
+
     component DarkField: TextField {
         id: fld
         implicitWidth: 96
@@ -246,7 +269,7 @@ Window {
                             RowLabel { text: I18N.t(dlg.lang, "display1_max") }
                             DarkField {
                                 id: d1
-                                text: engineRef ? Number(engineRef.settings.display1).toFixed(0) : "45"
+                                text: "45"
                                 validator: IntValidator { bottom: 5; top: 400 }
                             }
                         }
@@ -254,7 +277,7 @@ Window {
                         RowLayout {
                             Layout.fillWidth: true
                             RowLabel { text: I18N.t(dlg.lang, "display2_enabled") }
-                            DarkCheck { id: d2en; checked: engineRef ? engineRef.settings.display2Enabled : false }
+                            DarkCheck { id: d2en; checked: false }
                         }
 
                         RowLayout {
@@ -262,7 +285,7 @@ Window {
                             RowLabel { text: I18N.t(dlg.lang, "display2_max") }
                             DarkField {
                                 id: d2
-                                text: engineRef ? Number(engineRef.settings.display2).toFixed(0) : "35"
+                                text: "35"
                                 validator: IntValidator { bottom: 5; top: 400 }
                             }
                         }
@@ -338,7 +361,7 @@ Window {
                             RowLabel { text: I18N.t(dlg.lang, "tariff_custom") }
                             DarkField {
                                 id: tariffField
-                                text: engineRef ? I18N.money(dlg.lang, engineRef.tariff) : "1444.70"
+                                text: "1444.70"
                                 validator: DoubleValidator { bottom: 1; top: 100000; decimals: 2 }
                             }
                         }
@@ -363,7 +386,7 @@ Window {
                             }
                             DarkCheck {
                                 id: autostartChk
-                                checked: engineRef ? engineRef.settings.autostart : true
+                                checked: true
                             }
                         }
 
@@ -375,7 +398,7 @@ Window {
                             RowLabel { text: I18N.t(dlg.lang, "fan_count") }
                             DarkField {
                                 id: fanCount
-                                text: engineRef ? String(engineRef.settings.fans) : "6"
+                                text: "6"
                                 validator: IntValidator { bottom: 0; top: 16 }
                             }
                         }
@@ -384,20 +407,20 @@ Window {
                             RowLabel { text: I18N.t(dlg.lang, "fan_watt") }
                             DarkField {
                                 id: fanWatt
-                                text: engineRef ? Number(engineRef.settings.fanWatt).toFixed(1) : "1.5"
+                                text: "1.5"
                             }
                         }
                         RowLayout {
                             Layout.fillWidth: true
                             RowLabel { text: I18N.t(dlg.lang, "pump_label") }
-                            DarkCheck { id: pump; checked: engineRef ? engineRef.settings.pump : true }
+                            DarkCheck { id: pump; checked: true }
                         }
                         RowLayout {
                             Layout.fillWidth: true
                             RowLabel { text: I18N.t(dlg.lang, "pump_watt") }
                             DarkField {
                                 id: pumpWatt
-                                text: engineRef ? Number(engineRef.settings.pumpWatt).toFixed(1) : "6.0"
+                                text: "6.0"
                             }
                         }
                         RowLayout {
@@ -405,7 +428,7 @@ Window {
                             RowLabel { text: I18N.t(dlg.lang, "leds") }
                             DarkField {
                                 id: leds
-                                text: engineRef ? String(engineRef.settings.leds) : "24"
+                                text: "24"
                                 validator: IntValidator { bottom: 0; top: 150 }
                             }
                         }
@@ -414,33 +437,7 @@ Window {
                             RowLabel { text: I18N.t(dlg.lang, "led_watt") }
                             DarkField {
                                 id: ledWatt
-                                text: engineRef ? Number(engineRef.settings.ledWatt).toFixed(2) : "0.30"
-                            }
-                        }
-
-                        Rectangle { Layout.fillWidth: true; height: 1; color: dlg.line }
-
-                        SectionLabel { text: I18N.t(dlg.lang, "topbar_section") }
-                        RowLayout {
-                            Layout.fillWidth: true
-                            RowLabel { text: I18N.t(dlg.lang, "topbar_show") }
-                            DarkCheck {
-                                id: topbar
-                                checked: engineRef ? engineRef.settings.topbar : true
-                                onToggled: if (engineRef) engineRef.saveTopbar(checked)
-                            }
-                        }
-                        RowLayout {
-                            Layout.fillWidth: true
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: 1
-                                RowLabel { text: I18N.t(dlg.lang, "close_to_tray") }
-                            }
-                            DarkCheck {
-                                id: closeTray
-                                checked: engineRef ? engineRef.settings.closeToTray : true
-                                onToggled: if (engineRef) engineRef.saveCloseToTray(checked)
+                                text: "0.30"
                             }
                         }
 
@@ -523,14 +520,26 @@ Window {
                 }
                 onClicked: {
                     if (!engineRef) { dlg.close(); return }
-                    engineRef.saveDisplays(num(d1.text, 45), num(d2.text, 35), d2en.checked)
-                    engineRef.savePlatform(num(fanCount.text, 6), num(fanWatt.text, 1.5),
-                                           pump.checked, num(pumpWatt.text, 6),
-                                           num(leds.text, 24), num(ledWatt.text, 0.3), 18)
-                    engineRef.saveAutostart(autostartChk.checked)
-                    var custom = num(tariffField.text, -1)
-                    if (custom > 0 && Math.abs(custom - engineRef.tariff) > 0.001)
-                        engineRef.setTariff(custom)
+                    // Snapshot every field before ANY engine call. Each saver
+                    // emits configChanged, which re-evaluates the `text:`
+                    // bindings and would otherwise reset the fields we have
+                    // not read yet back to their stored values.
+                    var vD1 = num(d1.text, 45)
+                    var vD2 = num(d2.text, 35)
+                    var vD2en = d2en.checked
+                    var vFans = num(fanCount.text, 6)
+                    var vFanW = num(fanWatt.text, 1.5)
+                    var vPump = pump.checked
+                    var vPumpW = num(pumpWatt.text, 6)
+                    var vLeds = num(leds.text, 24)
+                    var vLedW = num(ledWatt.text, 0.3)
+                    var vAuto = autostartChk.checked
+                    var vTariff = num(tariffField.text, -1)
+                    engineRef.saveDisplays(vD1, vD2, vD2en)
+                    engineRef.savePlatform(vFans, vFanW, vPump, vPumpW, vLeds, vLedW, 18)
+                    engineRef.saveAutostart(vAuto)
+                    if (vTariff > 0 && Math.abs(vTariff - engineRef.tariff) > 0.001)
+                        engineRef.setTariff(vTariff)
                     dlg.close()
                 }
             }
